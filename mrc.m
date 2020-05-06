@@ -55,7 +55,7 @@ ind=find(differ>1);
 rec_lengths=[ind(1);ind(2:end)-ind(1:end-1)];
 break_times=rec_times(ind+1);
 
-
+figure; hold on;
 time_count=1;
 for rec_ind=1:length(rec_lengths)
     
@@ -67,10 +67,15 @@ for rec_ind=1:length(rec_lengths)
     rec_period{rec_ind}(:,3)=evap_vals(plot_times);
     rec_period{rec_ind}(:,4)=strm_vals(plot_times);
     
+    plot(plot_times,strm_vals_tmp);
+    
     time_count=time_count+rec_length_tmp;
     
 end
-
+hold off;
+xlabel('Time-steps (days)','fontname','arial','fontsize',12);
+ylabel('Streamflow (mm s^{-1})','fontname','arial','fontsize',12);
+set(gca,'fontname','arial','fontsize',12);
 %% Compute statistics to filter the recession periods
 % compute total volumes of streamflow, rainfall, and evaporation during
 % each recession period
@@ -86,9 +91,15 @@ prcp_strm_ratios=prcp_vol./strm_vol;
 evap_strm_ratios=evap_vol./strm_vol;
 
 % plot histograms of ratios
-% figure; hist(prcp_strm_ratios); xlabel('Precipitation streamflow ratio');
-% figure; hist(evap_strm_ratios); xlabel('Evaporation streamflow ratio');
+figure; hist(prcp_strm_ratios);
+xlabel('Precipitation streamflow ratio','fontname','arial','fontsize',12);
+ylabel('Number of samples in the bin','fontname','arial','fontsize',12);
+set(gca,'fontname','arial','fontsize',12);
 
+figure; hist(evap_strm_ratios);
+xlabel('Evaporation streamflow ratio','fontname','arial','fontsize',12);
+ylabel('Number of samples in the bin','fontname','arial','fontsize',12);
+set(gca,'fontname','arial','fontsize',12);
 %% filter the recession periods
 ind_prcp=find(prcp_strm_ratios<=prcp_strm_ratio_thresh);        % precipitation threshold
 ind_evap=find(evap_strm_ratios<=evap_strm_ratio_thresh);        % evaporation threshold
@@ -98,16 +109,19 @@ ind_final=intersect(ind_final1,ind_length);
 
 filt_rec_periods=rec_period(ind_final);                         % filtered recession periods
 
-%% create mrc based on filtered_recession periods
+%% create mrc based on filtered recession periods
 % sort the filtered recession periods
 figure; hold on
 for rec_ind=1:length(filt_rec_periods)
     
     comp_val(rec_ind,1)=min(filt_rec_periods{rec_ind}(:,4));
-    plot(filt_rec_periods{rec_ind}(:,4)*darea*1000);
+    plot(filt_rec_periods{rec_ind}(:,4));
     
 end
 hold off;
+xlabel('Arbitrary time-steps (days)','fontname','arial','fontsize',12);
+ylabel('Streamflow (mm s^{-1})','fontname','arial','fontsize',12);
+set(gca,'fontname','arial','fontsize',12);
 
 comp_val=[comp_val,(1:length(comp_val))'];
 comp_val=sortrows(comp_val);
@@ -126,5 +140,8 @@ for mrcf_ind=2:size(comp_val,1);
     
 end
 mrcf=[upper_rec;mrcf];
-mrcf=mrcf*darea*1000;
+mrcf=mrcf;
 figure; plot(mrcf)
+xlabel('Arbitrary time-steps (days)','fontname','arial','fontsize',12);
+ylabel('Streamflow (mm s^{-1})','fontname','arial','fontsize',12);
+set(gca,'fontname','arial','fontsize',12);
