@@ -75,6 +75,7 @@ end
 hold off;
 xlabel('Time-steps (days)','fontname','arial','fontsize',12);
 ylabel('Streamflow (mm s^{-1})','fontname','arial','fontsize',12);
+title('Recession periods','fontname','arial','fontsize',12);
 set(gca,'fontname','arial','fontsize',12);
 %% Compute statistics to filter the recession periods
 % compute total volumes of streamflow, rainfall, and evaporation during
@@ -121,6 +122,7 @@ end
 hold off;
 xlabel('Arbitrary time-steps (days)','fontname','arial','fontsize',12);
 ylabel('Streamflow (mm s^{-1})','fontname','arial','fontsize',12);
+title('Filtered recession periods','fontname','arial','fontsize',12);
 set(gca,'fontname','arial','fontsize',12);
 
 comp_val=[comp_val,(1:length(comp_val))'];
@@ -141,7 +143,20 @@ for mrcf_ind=2:size(comp_val,1);
 end
 mrcf=[upper_rec;mrcf];
 mrcf=mrcf;
-figure; plot(mrcf)
+figure; plot(mrcf*darea*1000)
 xlabel('Arbitrary time-steps (days)','fontname','arial','fontsize',12);
-ylabel('Streamflow (mm s^{-1})','fontname','arial','fontsize',12);
+ylabel('Streamflow (m^(3) s^{-1})','fontname','arial','fontsize',12);
+title('Master recession curve','fontname','arial','fontsize',12);
 set(gca,'fontname','arial','fontsize',12);
+
+% save MRC
+sname='MRC.txt';
+filename=fullfile(direc,'huc_04100003',sname);
+fid=fopen(filename,'w');
+fprintf(fid,'%s\t%s\n','time-step(days)','Streamflow(cms)');
+for write_ind=1:length(mrcf)
+    
+    fprintf(fid,'%f\t%f\n',write_ind-1,mrcf(write_ind)*darea*1000);
+    
+end
+close(fid)
