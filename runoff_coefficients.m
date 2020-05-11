@@ -15,7 +15,7 @@ clc
 direc='D:/Research/Thesis_work/Structural_vs_measurement_uncertainty/matlab_codes';
 darea=2764.0831;               % drainage area in km2
 prcp_thresh=1;               % depth of rainfall which is assumed to be negligible for the separation of hydrographs (in mm)
-length_thresh=6;               % minimum separation between the end and begining of two storms (In other words, minimum length of gap period)
+length_thresh=7;               % minimum separation between the end and begining of two storms (In other words, minimum length of gap period)
 %% load streamflow and rainfall data, and MRC
 strm_fname='streamflow_18.txt';
 filename=fullfile(direc,'huc_04100003','streamflow_data',strm_fname);
@@ -65,15 +65,6 @@ ind_gp=find(length_gap_periods<length_thresh);
 gap_period(ind_gp,:)=[];
 length_gap_periods(ind_gp,:)=[];
 %% Identify rainfall periods using gap periods
-
-% ind_prcp_thresh=find(prcp_vals>=prcp_thresh);
-% differ=ind_prcp_thresh(2:end)-ind_prcp_thresh(1:end-1);
-% ind_differ=find(differ>1);
-% eind_rain_periods=[ind_prcp_thresh(ind_differ);ind_prcp_thresh(end)];            % end index of each gap-period
-% bind_rain_periods=[ind_prcp_thresh(1);ind_prcp_thresh(ind_differ(1:end)+1)];     % begin index of each gap-period
-% rain_period=[bind_rain_periods,eind_rain_periods];
-% length_rain_periods=(eind_rain_periods-bind_rain_periods)+1;                       % length of gap-periods
-
 pseudo_gap_period=[0,0;gap_period];
 rain_period(:,1)=pseudo_gap_period(:,2)+1;                                      % begin index of rain period
 rain_period(:,2)=[pseudo_gap_period(2:end,1)-1;length(strm_vals)];              % end index of rain period
@@ -102,14 +93,22 @@ period{strm_ind}.streamflow=strm_vals(rain_period(strm_ind,1):end);
 %
 period=complete_hydrograph(period,mrc);
 %}
-
-%% Computation of runoff coefficient
+%{
+figure;
+for per_ind=1:length(period)
+plot(period{per_ind}.streamflow);
+pause(1);
+end
+%}
+%% Computation of runoff coefficients
 [runoff_coeff,strm_tmp_vol,prcp_tmp_vol]=runoff_coff_comp(period,darea);
 figure; hist(runoff_coeff);
 figure; plot(prcp_tmp_vol,runoff_coeff,'o')
 
-% figure;
-% for per_ind=1:length(period)
-% plot(period{per_ind}.streamflow);
-% pause(1);
-% end
+% save data
+for run_ind=1:length(runoff_coeff)
+    period{run_ind}.runoff_coefficient=runoff_coeff(run_ind);
+end
+sname='rainfall_runoff_data.mat';
+save_filename=fullfile(direc,'huc_04100003',sname);
+save(save_filename,'period')
