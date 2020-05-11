@@ -16,7 +16,7 @@ function [runoff_coeff,strm_tmp_vol,prcp_tmp_vol]=runoff_coff_comp(period,darea)
     for per_ind=1:length(period);
         
         strm_tmp=period{per_ind}.completed_streamflow;
-        strm_tmp_vol(per_ind)=sum(strm_tmp)*3600/darea/1000;         % total volume of streamflow in mm
+        strm_tmp_vol(per_ind)=sum(strm_tmp)*3600*24/darea/1000;         % total volume of streamflow in mm
         prcp_tmp=period{per_ind}.rain;
         prcp_tmp_vol(per_ind)=sum(prcp_tmp);
         runoff_coeff(per_ind)=strm_tmp_vol(per_ind)/prcp_tmp_vol(per_ind);
