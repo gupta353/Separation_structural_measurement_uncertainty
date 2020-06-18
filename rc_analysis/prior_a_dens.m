@@ -8,8 +8,7 @@
 function dens=prior_a_dens(asamp,amin,amax)
     
     % uniform prior
-    a=asamp(1);
-    if a>=amin && a<=amax
+    if asamp>=amin && asamp<=amax
         dens=1/(amax-amin);
     else
         dens=0;
