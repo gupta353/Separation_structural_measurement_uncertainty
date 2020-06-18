@@ -4,16 +4,10 @@
 %         hs = break point of rating curve segments
 %         h0_list = list of cease of flow parameters
 %         b_list = list of exponent parameters
-%         aspace = if parameter 'a' is provided in logarithmic space this,
-%         parameter is equal to 'log'; otherwise it should be equal to
-%         'arithmetic'
+% outputs: a_list = list of log of multiplier parameters
 
-function a_list = rc_continuity(a1,hs,h0_list,b_list,aspace)
+function a_list = rc_continuity(a1,hs,h0_list,b_list)
     
-    if strcmp(aspace,'arithmetic')
-        a1=log(a1);
-    end
-   
     a_list=[a1;zeros(length(b_list)-1,1)];
     hs(1)=[]; hs(end)=[];
     
@@ -30,9 +24,5 @@ function a_list = rc_continuity(a1,hs,h0_list,b_list,aspace)
         a_list(a_ind)=a_old + b_old*log(hs_iter-h0_old) - b_new*log(hs_iter-h0_new);
         
     end
-    
-     if strcmp(aspace,'arithmetic')
-        a_list=exp(a_list);
-     end
-    
+       
 end
