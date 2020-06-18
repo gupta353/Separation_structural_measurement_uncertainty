@@ -1,15 +1,17 @@
 % this function draws sample from joint prior distribution
-% inputs: lambda=segmentation rate (averge number of segments per unit length)
-%         hmin=minimum gage height in the data
-%         hmax=maximum gage height in the data
-%         amin=minimum value of the multiplier parameter of the first
+% inputs: lambda = segmentation rate (averge number of segments per unit length)
+%         hmin = minimum gage height in the data
+%         hmax = maximum gage height in the data
+%         amin = minimum value of the multiplier parameter of the first
 %              segment
-%         amx=maximum value of the multiplier parameter of the second
+%         amx = maximum value of the multiplier parameter of the second
 %             segment
-%         bmin=minimum value of the exponent parameter
-%         bmax=maximum value of the exponent parameter
-%         alpha and beta=parameter of the inverse gamma distribtuion to be used to
-%         draw samples from population of sigma2
+%         bmin = minimum value of the exponent parameter
+%         bmax = maximum value of the exponent parameter
+%         alpha and beta = parameter of the inverse gamma distribtuion to be used to
+%                          draw samples from population of sigma2
+%         h0_min and h0_max = minimum and maximum value of cease-to-flow
+%                             parameter
 %         aspace = 'log' is the multiplier parameter is in log-space,
 %                   'arithmetic' otherwise 
 %         nsamp = number of samples to be drawn
@@ -31,6 +33,6 @@ function theta=joint_priorrnd(lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0
     theta_zeros=zeros(1,40);
     theta=add_columns(theta_zeros',theta')';
     
-%     joint_dens=mdens*h01_dens*hs_dens*h0_dens*prod(adens)*prod(bdens)*sigma2_dens;
+    % joint_dens=mdens*h01_dens*hs_dens*h0_dens*prod(adens)*prod(bdens)*sigma2_dens;
     
 end
