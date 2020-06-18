@@ -10,7 +10,7 @@ function res = rc_res(log_Q_obs,log_Q_est)
     if length(log_Q_obs)==length(log_Q_est)
         res=log_Q_obs-log_Q_est;
     else
-        error('Observed and estimated dicharge must have same time-length')
+        error('Observed and estimated dicharges must have same time-length')
     end
 
 end
