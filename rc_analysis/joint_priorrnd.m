@@ -25,12 +25,12 @@ function theta=joint_priorrnd(lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0
     h0j_samp = prior_h0j(h0_min,h0_max,hs_samp,nsamp);
     bsamp = prior_b(bmin,bmax,msamp);
     asamp = prior_a(amin,amax,nsamp);
-    sigma2_samp =prior_sigma2(alpha,beta,nsamp);
+    sigma2_samp = prior_sigma2(alpha,beta,nsamp);
     
     theta=[msamp;h01_samp;hs_samp(2:end);h0j_samp;asamp;bsamp;sigma2_samp]'; % first element of hs_samp contains h01_samp
     
     % apppend theta by zeros so that the number of elements remain constant
-    theta_zeros=zeros(1,40);
+    theta_zeros=zeros(1,40); % value 40 is arbitrarily selected
     theta=add_columns(theta_zeros',theta')';
     
     % joint_dens=mdens*h01_dens*hs_dens*h0_dens*prod(adens)*prod(bdens)*sigma2_dens;
