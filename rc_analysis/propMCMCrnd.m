@@ -13,9 +13,10 @@
 %                          draw samples from population of sigma2
 %         h0_min and h0_max = minimum and maximum value of cease-to-flow
 %                             parameter
+%         nsamp = number of samples
 % outputs: theta_new = proposed parameter value
 
-function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max)
+function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,nsamp)
     
     m_old       =    theta_old(1);                                 % number of segments
     h01_old     =    theta_old(2);                                 % cease-to-flow parameter of the first segment
@@ -54,7 +55,7 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
             hs_min=h_s_new(hs_ind-1);
             hs_max=h_s_new(hs_ind+1);
             half_range=min(abs(hs_tmp-hs_min),abs(hs_tmp-hs_max));
-            sigma_hs=half_range/3.1;
+            sigma_hs=half_range/4;
             
             h_s_new(hs_ind)=hs_tmp+normrnd(0,sigma_hs);
         end
