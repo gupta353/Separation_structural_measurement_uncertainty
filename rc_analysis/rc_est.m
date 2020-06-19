@@ -33,7 +33,7 @@ function log_Q = rc_est(h,h_s,a1,b_list,h0_list,aspace)
             h0=h0_list(seg);
             log_Q(h_ind,1)=log_a+b*log(htmp-h0);
         else
-            log_Q=-inf;
+            log_Q=-inf*ones(length(h),1);
         end
     end
     
