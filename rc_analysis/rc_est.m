@@ -37,4 +37,7 @@ function log_Q = rc_est(h,h_s,a1,b_list,h0_list,aspace)
         end
     end
     
+    if ~isreal(log_Q)
+        error('The parameter set generated imaginery flow values. Please check if the parameters are physically consistent')
+    end
 end
