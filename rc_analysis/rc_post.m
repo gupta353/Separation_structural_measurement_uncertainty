@@ -45,11 +45,12 @@ alpha=3; beta=1;    % parameter of inverse-gamma distribtuion to draw sample fro
 h0_min=-5;          % minimum value of first cease-to-flow parameter (in m)
 h0_max=hmin;        % maximum value of first cease-to-flow parameter (in m)
 
-proprnd=@(x)joint_priorrnd(lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,aspace,nsamp);                             % draws samples from proposal distribution 
-logproppdf=@(x,y)joint_priorpdf(x,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max);                                   % log of transition pdf for proposal distribtuion
+
+proprnd=@(x)propMCMCrnd(x,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,nsamp);                             % draws samples from proposal distribution 
+logproppdf=@(x,y)propMCMCpdf(x,y,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max);                                   % log of transition pdf for proposal distribtuion
 logpdf=@(x)(rc_likeli(x,h,log_Q_obs,aspace)+joint_priorpdf(x,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max));       % lof of target distribution
 nsamples=10000;               % number MH samples to be drawn
-theta0=proprnd(1);            % seed parameter
+theta0=joint_priorrnd(lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,aspace,nsamp);            % seed parameter
 
 [smpl,accept] = mhsample(theta0,nsamples,'logpdf',logpdf,'logproppdf',logproppdf,'proprnd',proprnd,'thin',1);
 %}
@@ -62,11 +63,11 @@ for theta_ind=1:size(uni_smpl,1)
     h01     =    theta(2);                     % cease-to-flow parameter of the first segment
     h_s     =    theta(2:m+2);                 % list fo break points (h01 is included in the list of break-points)
     h0_list =    [h01,theta(m+3:2*m+1)];       % list of cease-to-flow parameters
-    a_list  =    theta(2*m+2);           % list of multiplier parameters
+    a1      =    theta(2*m+2);           % list of multiplier parameters
     b_list  =    theta(2*m+3:3*m+2);           % list of exponent parameters
     sigma2  =    theta(3*m+3);
     
-    log_Q_sim = rc_est(h,h_s,a_list,b_list,h0_list,aspace);
+    log_Q_sim = rc_est(h,h_s,a1,b_list,h0_list,aspace);
     scatter(exp(log_Q_obs),exp(log_Q_sim),'filled'); hold on
     llimit=min([exp(log_Q_sim);exp(log_Q_obs)]);
     ulimit=max([exp(log_Q_sim);exp(log_Q_obs)]);
