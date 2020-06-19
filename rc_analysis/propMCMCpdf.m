@@ -66,7 +66,7 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
             hs_min=h_s_old(hs_ind-1);
             hs_max=h_s_old(hs_ind+1);
             half_range=min(abs(hs_tmp-hs_min),abs(hs_tmp-hs_max));
-            sigma_hs=half_range/3.1;
+            sigma_hs=half_range/4;
             
             dens_h_s=dens_h_s*normpdf(h_s_new(hs_ind)-hs_tmp,sigma_hs);
         end
