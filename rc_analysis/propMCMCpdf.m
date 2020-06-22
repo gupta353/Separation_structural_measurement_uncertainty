@@ -55,9 +55,15 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
     
     %% density of h01_new
     if m_new==m_old
-        half_range=min(abs(h01_old-h0_max),abs(h01_old-h0_min));
-        sigma_h01=half_range/3;
-        dens_h01=normpdf(h01_new-h01_old,sigma_h01);
+        % normal distribtuion
+%         half_range=min(abs(h01_old-h0_max),abs(h01_old-h0_min));
+%         sigma_h01=half_range/3;
+%         dens_h01=normpdf(h01_new-h01_old,sigma_h01);
+        
+        % beta distribution
+        h01_min_tmp=max(h01_old-0.3,h0_min);
+        h01_max_tmp=min(h01_old+0.3,h0_max);
+        dens_h01=betapdf((h01_new-h01_min_tmp)/(h01_max_tmp-h01_min_tmp),2,2);
     else
         dens_h01=prior_h01_dens(h01_new,h0_min,h0_max);
     end
@@ -85,11 +91,17 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
     if m_new==m_old
         densb=1;
         for b_ind=1:length(b_list_new)
-            btmp=b_list_old(b_ind);
-            half_range=min(abs(btmp-bmin),abs(btmp-bmax));
-            sigma_b=half_range/3;
+            % normal distribution
+            %             btmp=b_list_old(b_ind);
+            %             half_range=min(abs(btmp-bmin),abs(btmp-bmax));
+            %             sigma_b=half_range/3;
+            %             densb=densb*normpdf(b_list_new(b_ind)-btmp,sigma_b);
             
-            densb=densb*normpdf(b_list_new(b_ind)-btmp,sigma_b);
+            % beta distribution
+            btmp=b_list_old(b_ind);
+            bmin_tmp=max(btmp-0.3,bmin);
+            bmax_tmp=min(btmp+0.3,bmax);
+            densb=densb*betapdf((btmp-bmin_tmp)/(bmax_tmp-bmin_tmp),2,2);
         end
     else
         densb=prior_b_dens(b_list_new,bmin,bmax);
@@ -97,9 +109,16 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
     
     %% density of multiplier parameter
     if m_new==m_old
-        half_range=min(abs(a1_old-amin),abs(a1_old-amax));
-        sigma_a=half_range/3;
-        densa1=normpdf(a1_new-a1_old,sigma_a);
+        % normal distribution
+%         half_range=min(abs(a1_old-amin),abs(a1_old-amax));
+%         sigma_a=half_range/3;
+%         densa1=normpdf(a1_new-a1_old,sigma_a);
+        
+        % beta distribution
+        amin_tmp=max(a1_old-0.3,amin);
+        amax_tmp=min(a1_old+0.3,amax);
+        densa1=betapdf((a1_new-amin_tmp)/(amax_tmp-amin_tmp),2,2);        
+        
     else
         densa1=prior_a_dens(a1_new,amin,amax);
     end
