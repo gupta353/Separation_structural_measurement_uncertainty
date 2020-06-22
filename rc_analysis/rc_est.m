@@ -18,15 +18,20 @@ function log_Q = rc_est(h,h_s,a1,b_list,h0_list,aspace)
     if strcmp(aspace,'arithmetic')
         a1=log(a1);
     end
-    a_list = rc_continuity(a1,h_s,h0_list,b_list);
+    m=length(b_list); % number of rating curve segments
     
+    if m>1
+        a_list = rc_continuity(a1,h_s,h0_list,b_list);
+    else
+        a_list=a1;
+    end
     % compute log of streamflow
     u_brk=h_s(2:end);   % upper break point of each rating curve segment
     for h_ind=1:length(h)
         
         htmp=h(h_ind);
         
-        if htmp>h0_list(1)      % check if htmp is greater than first cease-to-flow parameter
+        if htmp>h0_list(1)                  % check if htmp is greater than first cease-to-flow parameter
             seg=find(htmp<u_brk,1,'first'); % identify the segment
             log_a=a_list(seg);
             b=b_list(seg);
