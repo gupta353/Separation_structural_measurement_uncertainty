@@ -41,12 +41,16 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
     %% density of m_new
     m_max=floor(lambda*(hmax-hmin));
     m_min=1;
-    if m_new==m_old
-        densm=0.8;
-    elseif m_old==m_max || m_old==m_min
-        densm=0.2;
+    if m_max~=m_min
+        if m_new==m_old
+            densm=0.8;
+        elseif m_old==m_max || m_old==m_min
+            densm=0.2;
+        else
+            densm=0.1;
+        end
     else
-        densm=0.1;
+        densm=1;
     end
     
     %% density of h01_new
@@ -101,8 +105,13 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
     end
     
     %% density of error variance parameter
-    dens_sigma2=prior_sigma2_dens(sigma2_new,alpha,beta);
-    
+    if m_new==m_old
+        sigma2_max=sigma2_old+0.05;
+        sigma2_min=max(sigma2_old-0.05,0);
+        dens_sigma2=betapdf((sigma2_new-sigma2_min)/(sigma2_max-sigma2_min),2,2);
+    else
+        dens_sigma2=prior_sigma2_dens(sigma2_new,alpha,beta);
+    end
     %% log of proposed parameter set
     log_dens_prop_prior = log(densm) + log(dens_h01) + log(dens_h_s) + log(dens_h0j) + log(densb) + log(densa1) + log(dens_sigma2);
 end
