@@ -8,9 +8,9 @@
 function dens=prior_h_s_dens(h_s,m,hmin,hmax)
     
     % conditional uniform prior ordered
-    h_s(1)=[];h_s(end)=[];
-    n=length(h_s);
     if m>1
+        h_s(1)=[];h_s(end)=[];
+        n=length(h_s);
         if sum(h_s>=hmin)==n && sum(h_s<=hmax)==n
             dens=factorial(m-1)/(hmax-hmin)^(m-1);
         else
