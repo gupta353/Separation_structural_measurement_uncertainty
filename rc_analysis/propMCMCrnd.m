@@ -29,14 +29,15 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
     %% draw m (number of segments)
     % probabilities (p(m_old)=0.8, p(m_old+1)=0.1,p(m_old-1)0.1)
     m_max=floor(lambda*(hmax-hmin));
-    samp_space=[m_old*ones(8,1);m_old-1;m_old+1]; % population from which a sample can be drawn uniformly
-    m_new=datasample(samp_space,1);
-    % make sure that jump is in the support
-    if m_new>m_max
-        m_new=m_old-1;
-    elseif m_new<1 && m_max>=2
-        m_new=m_old+1;
+    if m_max==1
+        samp_space=ones(10,1);
+    else
+        samp_space=[m_old*ones(8,1);m_old-1;]; % population from which a sample can be drawn uniformly
+        % make sure that sammple space is contained in the suppor
+        samp_space(samp_space>m_max)=m_old-1;
+        samp_space(samp_space<1)=2;
     end
+    m_new=datasample(samp_space,1);
     
     %% draw h01
     if m_new==m_old
@@ -91,8 +92,13 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
     end
     
     %% draw sigma2
-    sigma2_new=prior_sigma2(alpha,beta,nsamp);
-    
+    if m_new==m_old
+        sigma2_max=sigma2_old+0.05;
+        sigma2_min=max(sigma2_old-0.05,0);
+        sigma2_new=sigma2_min+(sigma2_max-sigma2_min)*betarnd(2,2);
+    else
+        sigma2_new=prior_sigma2(alpha,beta,nsamp);
+    end
     %% create theta_new
     theta_new=[m_new,h01_new,h_s_new(2:end),h0j_new(2:end),a1_new,b_list_new,sigma2_new];
     theta_zeros=zeros(1,length(theta_old));
