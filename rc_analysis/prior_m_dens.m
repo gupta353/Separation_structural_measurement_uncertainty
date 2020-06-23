@@ -16,8 +16,12 @@ function dens=prior_m_dens(msamp,lambda,hmin,hmax)
     %}
     
     % fixed value
-    %{
-    dens=1;
+    %
+    if msamp==2
+        dens=1;
+    else
+        dens=0;
+    end
     %}
     
     % discrete uniform prior
@@ -29,11 +33,11 @@ function dens=prior_m_dens(msamp,lambda,hmin,hmax)
 %     end
     
     % non-uniform prior (p_(i+1)=2*p_i)
-    kmax=floor(lambda*(hmax-hmin));
-    mult=10^3;      % GP multiplier
-     if msamp<=kmax && msamp>=1
-        dens=mult^(msamp-1)/(mult^kmax-1);
-    else
-        dens=0;
-    end
+%     kmax=floor(lambda*(hmax-hmin));
+%     mult=10^3;      % GP multiplier
+%      if msamp<=kmax && msamp>=1
+%         dens=mult^(msamp-1)/(mult^kmax-1);
+%     else
+%         dens=0;
+%     end
 end
