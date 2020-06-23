@@ -27,7 +27,19 @@ function [msamp,dens]=prior_m(lambda,hmin,hmax,nsamp)
     %}
     
     % discrete uniform prior
+%     kmax=floor(lambda*(hmax-hmin));
+%     msamp=randsample(kmax,nsamp);
+%     dens=1/kmax;
+    
+    % non-uniform prior (p_(i+1)=2*p_i)
     kmax=floor(lambda*(hmax-hmin));
-    msamp=randsample(kmax,nsamp);
-    dens=1/kmax;
+    mult=10^3;      % GP multilier
+    samp_space=[];
+    for ind=1:kmax
+        samp_space=[samp_space;ind*ones(mult^(ind-1),1)];
+    end
+    msamp = datasample(samp_space,1);
+    
+    dens=mult^(msamp-1)/(2^kmax-1);
+    
 end
