@@ -113,7 +113,7 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
     if m_new==m_old
         for sig_ind=1:m_new
             sigma2_max=sigma2_old(sig_ind)+0.02;
-            sigma2_min=max(sigma2_old(sig_ind)-0.02,-5);
+            sigma2_min=max(sigma2_old(sig_ind)-0.02,0);
             sigma2_new(sig_ind)=sigma2_min+(sigma2_max-sigma2_min)*betarnd(2,2);
         end
     else
