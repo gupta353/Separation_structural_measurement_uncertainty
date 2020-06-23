@@ -24,7 +24,7 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
     h0_list_old =    [h01_old,theta_old(m_old+3:2*m_old+1)];       % list of cease-to-flow parameters
     a1_old      =    theta_old(2*m_old+2);                         % list of multiplier parameters
     b_list_old  =    theta_old(2*m_old+3:3*m_old+2);               % list of exponent parameters
-    sigma2_old  =    theta_old(3*m_old+3);
+    sigma2_old  =    theta_old(3*m_old+3:4*m_old+2);
     
     %% draw m (number of segments)
     % probabilities (p(m_old)=0.8, p(m_old+1)=0.1,p(m_old-1)0.1)
@@ -42,10 +42,10 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
     %% draw h01
     if m_new==m_old
         % normal distribution
-%         half_range=min(abs(h01_old-h0_max),abs(h01_old-h0_min));
-%         sigma_h01=half_range/3;
-%         h01_new=h01_old+normrnd(0,sigma_h01);
-
+        %         half_range=min(abs(h01_old-h0_max),abs(h01_old-h0_min));
+        %         sigma_h01=half_range/3;
+        %         h01_new=h01_old+normrnd(0,sigma_h01);
+        
         % beta distribution
         h01_min_tmp=max(h01_old-0.3,h0_min);
         h01_max_tmp=min(h01_old+0.3,h0_max);
@@ -97,9 +97,9 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
     %% draw multiplier parameters
     if m_new==m_old
         % normal distribution
-%         half_range=min(abs(a1_old-amin),abs(a1_old-amax));
-%         sigma_a=half_range/3;
-%         a1_new=a1_old+normrnd(0,sigma_a);
+        %         half_range=min(abs(a1_old-amin),abs(a1_old-amax));
+        %         sigma_a=half_range/3;
+        %         a1_new=a1_old+normrnd(0,sigma_a);
         
         % beta distribtuion
         amin_tmp=max(a1_old-0.3,amin);
@@ -111,11 +111,13 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
     
     %% draw sigma2
     if m_new==m_old
-        sigma2_max=sigma2_old+0.05;
-        sigma2_min=max(sigma2_old-0.05,0);
-        sigma2_new=sigma2_min+(sigma2_max-sigma2_min)*betarnd(2,2);
+        for sig_ind=1:m_new
+            sigma2_max=sigma2_old(sig_ind)+0.02;
+            sigma2_min=max(sigma2_old(sig_ind)-0.02,-5);
+            sigma2_new(sig_ind)=sigma2_min+(sigma2_max-sigma2_min)*betarnd(2,2);
+        end
     else
-        sigma2_new=prior_sigma2(alpha,beta,nsamp);
+        sigma2_new=prior_sigma2(alpha,beta,m_new)';
     end
     %% create theta_new
     theta_new=[m_new,h01_new,h_s_new(2:end),h0j_new(2:end),a1_new,b_list_new,sigma2_new];
