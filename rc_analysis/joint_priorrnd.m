@@ -25,7 +25,7 @@ function theta=joint_priorrnd(lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0
     h0j_samp = prior_h0j(h0_min,h0_max,hs_samp,nsamp);
     bsamp = prior_b(bmin,bmax,msamp);
     asamp = prior_a(amin,amax,nsamp);
-    sigma2_samp = prior_sigma2(alpha,beta,nsamp);
+    sigma2_samp = prior_sigma2(alpha,beta,msamp);
     
     theta=[msamp;h01_samp;hs_samp(2:end);h0j_samp;asamp;bsamp;sigma2_samp]'; % first element of hs_samp contains h01_samp
     
