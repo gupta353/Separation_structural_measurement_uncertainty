@@ -8,6 +8,7 @@
 function dens=prior_sigma2_dens(sigma2_samp,alpha,beta)
     
     % inverse gamma prior
-    dens=(beta^alpha*gamma(alpha)*(sigma2_samp).^(alpha+1).*exp(1/beta/sigma2_samp))^-1;
+    dens=(beta^alpha*gamma(alpha)*(sigma2_samp).^(alpha+1).*exp(1./beta./sigma2_samp)).^-1;
+    dens=prod(dens);
     
 end
