@@ -26,21 +26,32 @@ function log_Q = rc_est(h,h_s,a1,b_list,h0_list,aspace)
         a_list=a1;
     end
     % compute log of streamflow
-    u_brk=h_s(2:end);   % upper break point of each rating curve segment
-    for h_ind=1:length(h)
-        
-        htmp=h(h_ind);
-        
-        if htmp>h0_list(1)                  % check if htmp is greater than first cease-to-flow parameter
-            seg=find(htmp<u_brk,1,'first'); % identify the segment
-            log_a=a_list(seg);
-            b=b_list(seg);
-            h0=h0_list(seg);
-            log_Q(h_ind,1)=log_a+b*log(htmp-h0);
-        else
-            log_Q=-inf*ones(length(h),1);
-        end
+%     u_brk=h_s(2:end);   % upper break point of each rating curve segment
+%     for h_ind=1:length(h)
+%         
+%         htmp=h(h_ind);
+%         
+%         if htmp>h0_list(1)                  % check if htmp is greater than first cease-to-flow parameter
+%             seg=find(htmp<u_brk,1,'first'); % identify the segment
+%             log_a=a_list(seg);
+%             b=b_list(seg);
+%             h0=h0_list(seg);
+%             log_Q(h_ind,1)=log_a+b*log(htmp-h0);
+%         else
+%             log_Q=-inf*ones(length(h),1);
+%         end
+%     end
+    u_brk=h_s(1:end);   % upper break point of each rating curve segment
+    for seg=2:length(u_brk)
+        ind = find(h<u_brk(seg) & h>=u_brk(seg-1));
+        htmp = h(ind);
+        log_a = a_list(seg-1);
+        b = b_list(seg-1);
+        h0 = h0_list(seg-1);
+        log_Q(ind) = log_a+b*log(htmp-h0);
     end
+    log_Q(h<h0_list(1)) = -inf;
+    log_Q = log_Q';
     
     if ~isreal(log_Q)
         error('The parameter set generated imaginery flow values. Please check if the parameters are physically consistent')
