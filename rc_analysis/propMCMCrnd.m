@@ -28,6 +28,7 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
     
     %% draw m (number of segments)
     % probabilities (p(m_old)=0.8, p(m_old+1)=0.1,p(m_old-1)0.1)
+    %{
     m_max=floor(lambda*(hmax-hmin));
     if m_max==1
         samp_space=ones(10,1);
@@ -38,7 +39,9 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
         samp_space(samp_space<1)=2;
     end
     m_new=datasample(samp_space,1);
-    
+    %}
+    % if m is fixed
+    m_new=1;
     %% draw h01
     if m_new==m_old
         % normal distribution
@@ -58,13 +61,20 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
     if m_new==m_old
         h_s_new=h_s_old; h_s_new(1)=h01_new;  % check
         for hs_ind=2:length(h_s_new)-1
-            hs_tmp=h_s_new(hs_ind);
-            hs_min=h_s_new(hs_ind-1);
-            hs_max=h_s_new(hs_ind+1);
-            half_range=min(abs(hs_tmp-hs_min),abs(hs_tmp-hs_max));
-            sigma_hs=half_range/4;
+            % normal distribution
+%             hs_tmp=h_s_new(hs_ind);
+%             hs_min=h_s_new(hs_ind-1);
+%             hs_max=h_s_new(hs_ind+1);
+%             half_range=min(abs(hs_tmp-hs_min),abs(hs_tmp-hs_max));
+%             sigma_hs=half_range/4;
+%             
+%             h_s_new(hs_ind)=hs_tmp+normrnd(0,sigma_hs);
             
-            h_s_new(hs_ind)=hs_tmp+normrnd(0,sigma_hs);
+            % beta distribution
+            hs_tmp=h_s_new(hs_ind);
+            hs_min=max(h_s_tmp-0.3,h_s_new(hs_ind-1));
+            hs_max=min(h_s_tmp+0.3,h_s_new(hs_ind+1));
+            h_s_new(hs_ind)=hs_min+(hs_max-hs_min)*betarnd(2,2);
         end
     else
         h_s_new=prior_h_s(m_new,hmin,hmax,nsamp)';
