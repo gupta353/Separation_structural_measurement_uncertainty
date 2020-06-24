@@ -56,7 +56,7 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
     end
     %}
     % if m is fixed
-    densm=1;
+    log_densm=0;
     %% density of h01_new
     if m_new==m_old
         % normal distribtuion
@@ -67,39 +67,48 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
         % beta distribution
         h01_min_tmp=max(h01_old-0.3,h0_min);
         h01_max_tmp=min(h01_old+0.3,h0_max);
-        dens_h01=betapdf((h01_new-h01_min_tmp)/(h01_max_tmp-h01_min_tmp),2,2);
+        log_dens_h01 = betapdfAG((h01_new-h01_min_tmp)/(h01_max_tmp-h01_min_tmp),2,2);
     else
-        dens_h01=prior_h01_dens(h01_new,h0_min,h0_max);
+        log_dens_h01 = log(prior_h01_dens(h01_new,h0_min,h0_max));
     end
     
     %% density of h_s_new
     if m_new==m_old
-        dens_h_s=1;
+        log_dens_h_s=0;
         for hs_ind=2:length(h_s_new)-1
-%             hs_tmp=h_s_old(hs_ind);
-%             hs_min=h_s_new(hs_ind-1);
-%             hs_max=h_s_old(hs_ind+1);
-%             half_range=min(abs(hs_tmp-hs_min),abs(hs_tmp-hs_max));
-%             sigma_hs=half_range/4;
-%             
-%             dens_h_s=dens_h_s*normpdf(h_s_new(hs_ind)-hs_tmp,sigma_hs);
+            %             hs_tmp=h_s_old(hs_ind);
+            %             hs_min=h_s_new(hs_ind-1);
+            %             hs_max=h_s_old(hs_ind+1);
+            %             half_range=min(abs(hs_tmp-hs_min),abs(hs_tmp-hs_max));
+            %             sigma_hs=half_range/4;
+            %
+            %             dens_h_s=dens_h_s*normpdf(h_s_new(hs_ind)-hs_tmp,sigma_hs);
             
             % beta distribution
             hs_tmp=h_s_old(hs_ind);
-            hs_min=max(hs_tmp-0.3,h_s_new(hs_ind-1));
-            hs_max=min(hs_tmp+0.3,h_s_old(hs_ind+1));
-            dens_h_s=dens_h_s*betapdf((h_s_new(hs_ind)-hs_min)/(hs_max-hs_min),2,2);
+            hs_min=max(hs_tmp-2,h_s_new(hs_ind-1));
+            hs_max=min(hs_tmp+2,h_s_old(hs_ind+1));
+            log_dens_h_s = log_dens_h_s + betapdfAG((h_s_new(hs_ind)-hs_min)/(hs_max-hs_min),2,2);
         end
     else
-        dens_h_s=prior_h_s_dens(h_s_new,m_new,hmin,hmax);
+        log_dens_h_s = log(prior_h_s_dens(h_s_new,m_new,hmin,hmax));
     end
     
     %% density of h0j_new
-    dens_h0j=prior_h0j_dens(h0_list_new(2:end),h0_min,h0_max,h_s_new);
-    
+    if m_new==m_old
+        log_dens_h0j = 0;
+        for h0j_ind = 2:m_new
+            h0tmp = h0_list_old(h0j_ind);
+            h0j_min = max(h0tmp-2,h0_min);
+            h0j_max = min(h0tmp+2,h_s_new(h0j_ind));
+            log_dens_h0j = log_dens_h0j + betapdfAG((h0_list_new(h0j_ind)-h0j_min)/(h0j_max-h0j_min),2,2);
+        end
+    else
+        log_dens_h0j = log(prior_h0j_dens(h0_list_new(2:end),h0_min,h0_max,h_s_new));
+    end
     %% density of exponent parameter
     if m_new==m_old
-        densb=1;
+        log_densb=0;
         for b_ind=1:length(b_list_new)
             % normal distribution
             %             btmp=b_list_old(b_ind);
@@ -109,12 +118,12 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
             
             % beta distribution
             btmp=b_list_old(b_ind);
-            bmin_tmp=max(btmp-0.3,bmin);
-            bmax_tmp=min(btmp+0.3,bmax);
-            densb=densb*betapdf((b_list_new(b_ind)-bmin_tmp)/(bmax_tmp-bmin_tmp),2,2);
+            bmin_tmp=max(btmp-1,bmin);
+            bmax_tmp=min(btmp+1,bmax);
+            log_densb = log_densb + betapdfAG((b_list_new(b_ind)-bmin_tmp)/(bmax_tmp-bmin_tmp),2,2);
         end
     else
-        densb=prior_b_dens(b_list_new,bmin,bmax);
+        log_densb = log(prior_b_dens(b_list_new,bmin,bmax));
     end
     
     %% density of multiplier parameter
@@ -125,25 +134,25 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
         %         densa1=normpdf(a1_new-a1_old,sigma_a);
         
         % beta distribution
-        amin_tmp=max(a1_old-0.3,amin);
-        amax_tmp=min(a1_old+0.3,amax);
-        densa1=betapdf((a1_new-amin_tmp)/(amax_tmp-amin_tmp),2,2);
+        amin_tmp=max(a1_old-0.5,amin);
+        amax_tmp=min(a1_old+0.5,amax);
+        log_densa1 = betapdfAG((a1_new-amin_tmp)/(amax_tmp-amin_tmp),2,2);
         
     else
-        densa1=prior_a_dens(a1_new,amin,amax);
+        log_densa1 = log(prior_a_dens(a1_new,amin,amax));
     end
     
     %% density of error variance parameter
     if m_new==m_old
-        dens_sigma2=1;
+        log_dens_sigma2 = 0;
         for sig_ind=1:m_new
-            sigma2_max=sigma2_old(sig_ind)+0.02;
-            sigma2_min=max(sigma2_old(sig_ind)-0.02,0);
-            dens_sigma2=dens_sigma2*betapdf((sigma2_new(sig_ind)-sigma2_min)/(sigma2_max-sigma2_min),2,2);
+            sigma2_max=sigma2_old(sig_ind)+0.05;
+            sigma2_min=max(sigma2_old(sig_ind)-0.05,0);
+            log_dens_sigma2 = log_dens_sigma2 + betapdfAG((sigma2_new(sig_ind)-sigma2_min)/(sigma2_max-sigma2_min),2,2);
         end
     else
-        dens_sigma2=prior_sigma2_dens(sigma2_new,alpha,beta);
+        log_dens_sigma2 = log(prior_sigma2_dens(sigma2_new,alpha,beta));
     end
     %% log of proposed parameter set
-    log_dens_prop_prior = log(densm) + log(dens_h01) + log(dens_h_s) + log(dens_h0j) + log(densb) + log(densa1) + log(dens_sigma2);
+    log_dens_prop_prior = log_densm + log_dens_h01 + log_dens_h_s + log_dens_h0j + log_densb + log_densa1 + log_dens_sigma2;
 end
