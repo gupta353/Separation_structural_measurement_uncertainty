@@ -42,6 +42,7 @@ function log_Q = rc_est(h,h_s,a1,b_list,h0_list,aspace)
 %         end
 %     end
     u_brk=h_s(1:end);   % upper break point of each rating curve segment
+    log_Q=zeros(length(h),1);
     for seg=2:length(u_brk)
         ind = find(h<u_brk(seg) & h>=u_brk(seg-1));
         htmp = h(ind);
@@ -51,7 +52,6 @@ function log_Q = rc_est(h,h_s,a1,b_list,h0_list,aspace)
         log_Q(ind) = log_a+b*log(htmp-h0);
     end
     log_Q(h<h0_list(1)) = -inf;
-    log_Q = log_Q';
     
     if ~isreal(log_Q)
         error('The parameter set generated imaginery flow values. Please check if the parameters are physically consistent')
