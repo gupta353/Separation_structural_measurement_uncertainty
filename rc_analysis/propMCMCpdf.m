@@ -86,9 +86,9 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
             
             % beta distribution
             hs_tmp=h_s_old(hs_ind);
-            hs_min=max(h_s_tmp-0.3,h_s_new(hs_ind-1));
-            hs_max=min(h_s_tmp+0.3,h_s_old(hs_ind+1));
-            dens_h_s=dens_h_s*betapdf((hs_new(hs_ind)-hs_min)/(hs_max-hs_min),2,2);
+            hs_min=max(hs_tmp-0.3,h_s_new(hs_ind-1));
+            hs_max=min(hs_tmp+0.3,h_s_old(hs_ind+1));
+            dens_h_s=dens_h_s*betapdf((h_s_new(hs_ind)-hs_min)/(hs_max-hs_min),2,2);
         end
     else
         dens_h_s=prior_h_s_dens(h_s_new,m_new,hmin,hmax);
