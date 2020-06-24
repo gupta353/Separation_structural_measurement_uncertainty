@@ -41,7 +41,7 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
     m_new=datasample(samp_space,1);
     %}
     % if m is fixed
-    m_new=1;
+    m_new=2;
     %% draw h01
     if m_new==m_old
         % normal distribution
@@ -72,8 +72,8 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
             
             % beta distribution
             hs_tmp=h_s_new(hs_ind);
-            hs_min=max(h_s_tmp-0.3,h_s_new(hs_ind-1));
-            hs_max=min(h_s_tmp+0.3,h_s_new(hs_ind+1));
+            hs_min=max(hs_tmp-0.3,h_s_new(hs_ind-1));
+            hs_max=min(hs_tmp+0.3,h_s_new(hs_ind+1));
             h_s_new(hs_ind)=hs_min+(hs_max-hs_min)*betarnd(2,2);
         end
     else
