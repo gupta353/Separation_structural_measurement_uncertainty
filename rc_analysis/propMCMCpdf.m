@@ -39,6 +39,8 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
     sigma2_new  =    theta_new(3*m_new+3:4*m_new+2);
     
     %% density of m_new
+    % probabilities (p(m_old)=0.8, p(m_old+1)=0.1,p(m_old-1)0.1)
+    %{
     m_max=floor(lambda*(hmax-hmin));
     m_min=1;
     if m_max~=m_min
@@ -52,7 +54,9 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
     else
         densm=1;
     end
-    
+    %}
+    % if m is fixed
+    densm=1;
     %% density of h01_new
     if m_new==m_old
         % normal distribtuion
@@ -72,13 +76,19 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
     if m_new==m_old
         dens_h_s=1;
         for hs_ind=2:length(h_s_new)-1
-            hs_tmp=h_s_old(hs_ind);
-            hs_min=h_s_old(hs_ind-1);
-            hs_max=h_s_old(hs_ind+1);
-            half_range=min(abs(hs_tmp-hs_min),abs(hs_tmp-hs_max));
-            sigma_hs=half_range/4;
+%             hs_tmp=h_s_old(hs_ind);
+%             hs_min=h_s_new(hs_ind-1);
+%             hs_max=h_s_old(hs_ind+1);
+%             half_range=min(abs(hs_tmp-hs_min),abs(hs_tmp-hs_max));
+%             sigma_hs=half_range/4;
+%             
+%             dens_h_s=dens_h_s*normpdf(h_s_new(hs_ind)-hs_tmp,sigma_hs);
             
-            dens_h_s=dens_h_s*normpdf(h_s_new(hs_ind)-hs_tmp,sigma_hs);
+            % beta distribution
+            hs_tmp=h_s_old(hs_ind);
+            hs_min=max(h_s_tmp-0.3,h_s_new(hs_ind-1));
+            hs_max=min(h_s_tmp+0.3,h_s_old(hs_ind+1));
+            dens_h_s=dens_h_s*betapdf((hs_new(hs_ind)-hs_min)/(hs_max-hs_min),2,2);
         end
     else
         dens_h_s=prior_h_s_dens(h_s_new,m_new,hmin,hmax);
@@ -101,7 +111,7 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
             btmp=b_list_old(b_ind);
             bmin_tmp=max(btmp-0.3,bmin);
             bmax_tmp=min(btmp+0.3,bmax);
-            densb=densb*betapdf((btmp-bmin_tmp)/(bmax_tmp-bmin_tmp),2,2);
+            densb=densb*betapdf((b_list_new(b_ind)-bmin_tmp)/(bmax_tmp-bmin_tmp),2,2);
         end
     else
         densb=prior_b_dens(b_list_new,bmin,bmax);
