@@ -82,7 +82,7 @@ for theta_ind=1:size(uni_smpl,1)
 end
 %}
 %% plot the log-log linear relationship for observed and predicted flow values
-%
+%{
 uni_smpl=unique(smpl,'rows','stable');
 for theta_ind=1:size(uni_smpl,1)
     theta=uni_smpl(theta_ind,:);
@@ -143,7 +143,7 @@ for theta_ind=1:size(uni_smpl,1)
     scatter(h,exp(log_Q_obs),'filled','facecolor','r'); hold on
     scatter(h,Q_sim_low,'filled','facecolor','g'); hold on
     scatter(h,Q_sim_up,'filled','facecolor','g'); hold on
-%     set(gca,'xscale','log','yscale','log')
+    set(gca,'xscale','log','yscale','log')
     pause;
     close all
 end
