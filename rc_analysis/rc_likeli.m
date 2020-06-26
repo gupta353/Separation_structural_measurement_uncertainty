@@ -20,14 +20,31 @@ function log_likeli=rc_likeli(theta,h,log_Q_obs,aspace)
     sigma2_list =    theta(3*m+3:4*m+2);           % list of homoscedastic variance of residuals
     
     log_Q_est = rc_est(h,h_s,a1,b_list,h0_list,aspace);
-    res = rc_res(log_Q_obs,log_Q_est);
-    
+        
     n = length(log_Q_obs);
     u_brk = h_s(2:end);
+    
+    % multiplicative error model
+    %{
+    res = rc_res(log_Q_obs,log_Q_est);
     log_likeli=0;
     for seg_ind=1:m
         res_tmp = res(h<u_brk(seg_ind));
         sigma2_tmp = sigma2_list(seg_ind);
         log_likeli = log_likeli - n/2*log(2*pi) - n/2*log(sigma2_tmp) - 1/2/sigma2_tmp*sum(res_tmp.^2);
     end
+    %}
+    
+    % Addtive error model
+    %
+    Q_est = exp(log_Q_est);
+    Q_obs = exp(log_Q_obs);
+    res = rc_res(Q_obs,Q_est);
+    log_likeli=0;
+    for seg_ind=1:m
+        res_tmp = res(h<u_brk(seg_ind));
+        sigma2_tmp = sigma2_list(seg_ind);
+        log_likeli = log_likeli - n/2*log(2*pi) - n/2*log(sigma2_tmp) - 1/2/sigma2_tmp*sum(res_tmp.^2);
+   end
+    %}
 end
