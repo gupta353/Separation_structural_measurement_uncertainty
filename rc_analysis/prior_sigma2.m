@@ -14,4 +14,5 @@ function [sigma2_samp,dens]=prior_sigma2(alpha,beta,nsamp)
     dens=(beta^alpha*gamma(alpha)*(sigma2_samp).^(alpha+1).*exp(1./beta./sigma2_samp)).^-1;
     dens=prod(dens);
     
+    
 end
