@@ -40,23 +40,23 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
     
     %% density of m_new
     % probabilities (p(m_old)=0.8, p(m_old+1)=0.1,p(m_old-1)0.1)
-    %{
+    %
     m_max=floor(lambda*(hmax-hmin));
     m_min=1;
     if m_max~=m_min
         if m_new==m_old
-            densm=0.8;
+            log_densm=log(0.8);
         elseif m_old==m_max || m_old==m_min
-            densm=0.2;
+            log_densm=log(0.2);
         else
-            densm=0.1;
+            log_densm=log(0.10);
         end
     else
-        densm=1;
+        log_densm=0;
     end
     %}
     % if m is fixed
-    log_densm=0;
+%     log_densm=0;
     %% density of h01_new
     if m_new==m_old
         % normal distribtuion
@@ -86,8 +86,8 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
             
             % beta distribution
             hs_tmp=h_s_old(hs_ind);
-            hs_min=max(hs_tmp-2,h_s_new(hs_ind-1));
-            hs_max=min(hs_tmp+2,h_s_old(hs_ind+1));
+            hs_min=max(hs_tmp-0.3,h_s_new(hs_ind-1));
+            hs_max=min(hs_tmp+0.3,h_s_old(hs_ind+1));
             log_dens_h_s = log_dens_h_s + betapdfAG((h_s_new(hs_ind)-hs_min)/(hs_max-hs_min),2,2);
         end
     else
@@ -99,8 +99,8 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
         log_dens_h0j = 0;
         for h0j_ind = 2:m_new
             h0tmp = h0_list_old(h0j_ind);
-            h0j_min = max(h0tmp-2,h0_min);
-            h0j_max = min(h0tmp+2,h_s_new(h0j_ind));
+            h0j_min = max(h0tmp-0.3,h0_min);
+            h0j_max = min(h0tmp+0.3,h_s_new(h0j_ind));
             log_dens_h0j = log_dens_h0j + betapdfAG((h0_list_new(h0j_ind)-h0j_min)/(h0j_max-h0j_min),2,2);
         end
     else
@@ -118,8 +118,8 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
             
             % beta distribution
             btmp=b_list_old(b_ind);
-            bmin_tmp=max(btmp-1,bmin);
-            bmax_tmp=min(btmp+1,bmax);
+            bmin_tmp=max(btmp-0.3,bmin);
+            bmax_tmp=min(btmp+0.3,bmax);
             log_densb = log_densb + betapdfAG((b_list_new(b_ind)-bmin_tmp)/(bmax_tmp-bmin_tmp),2,2);
         end
     else
@@ -134,8 +134,8 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
         %         densa1=normpdf(a1_new-a1_old,sigma_a);
         
         % beta distribution
-        amin_tmp=max(a1_old-0.5,amin);
-        amax_tmp=min(a1_old+0.5,amax);
+        amin_tmp=max(a1_old-0.3,amin);
+        amax_tmp=min(a1_old+0.3,amax);
         log_densa1 = betapdfAG((a1_new-amin_tmp)/(amax_tmp-amin_tmp),2,2);
         
     else
@@ -146,8 +146,8 @@ function log_dens_prop_prior = propMCMCpdf(theta_old,theta_new,lambda,hmin,hmax,
     if m_new==m_old
         log_dens_sigma2 = 0;
         for sig_ind=1:m_new
-            sigma2_max=sigma2_old(sig_ind)+0.05;
-            sigma2_min=max(sigma2_old(sig_ind)-0.05,0);
+            sigma2_max=sigma2_old(sig_ind)+10;
+            sigma2_min=max(sigma2_old(sig_ind)-10,0);
             log_dens_sigma2 = log_dens_sigma2 + betapdfAG((sigma2_new(sig_ind)-sigma2_min)/(sigma2_max-sigma2_min),2,2);
         end
     else
