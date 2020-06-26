@@ -28,7 +28,7 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
     
     %% draw m (number of segments)
     % probabilities (p(m_old)=0.8, p(m_old+1)=0.1,p(m_old-1)0.1)
-    %{
+    %
     m_max=floor(lambda*(hmax-hmin));
     if m_max==1
         samp_space=ones(10,1);
@@ -41,7 +41,7 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
     m_new=datasample(samp_space,1);
     %}
     % if m is fixed
-    m_new=2;
+%     m_new=3;
     %% draw h01
     if m_new==m_old
         % normal distribution
@@ -62,13 +62,13 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
         h_s_new=h_s_old; h_s_new(1)=h01_new;  % check
         for hs_ind=2:length(h_s_new)-1
             % normal distribution
-%             hs_tmp=h_s_new(hs_ind);
-%             hs_min=h_s_new(hs_ind-1);
-%             hs_max=h_s_new(hs_ind+1);
-%             half_range=min(abs(hs_tmp-hs_min),abs(hs_tmp-hs_max));
-%             sigma_hs=half_range/4;
-%             
-%             h_s_new(hs_ind)=hs_tmp+normrnd(0,sigma_hs);
+            %             hs_tmp=h_s_new(hs_ind);
+            %             hs_min=h_s_new(hs_ind-1);
+            %             hs_max=h_s_new(hs_ind+1);
+            %             half_range=min(abs(hs_tmp-hs_min),abs(hs_tmp-hs_max));
+            %             sigma_hs=half_range/4;
+            %
+            %             h_s_new(hs_ind)=hs_tmp+normrnd(0,sigma_hs);
             
             % beta distribution
             hs_tmp=h_s_new(hs_ind);
@@ -81,9 +81,18 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
     end
     
     %% draw h0j
-    h0j_new=prior_h0j(h0_min,h0_max,h_s_new',nsamp)';
-    h0j_new=[h01_new,h0j_new];
-    
+    if m_new==m_old
+        h0j_new = h0_list_old;
+        for h0j_ind = 2:m_new
+            h0tmp = h0j_new(h0j_ind);
+            h0j_min = max(h0tmp-0.3,h0_min);
+            h0j_max = min(h0tmp+0.3,h_s_new(h0j_ind));
+            h0j_new(h0j_ind) = h0j_min + (h0j_max-h0j_min)*betarnd(2,2);
+        end
+    else
+        h0j_new=prior_h0j(h0_min,h0_max,h_s_new',nsamp)';
+        h0j_new=[h01_new,h0j_new];
+    end
     %% draw exponent parameters
     if m_new==m_old
         b_list_new=b_list_old;
@@ -122,8 +131,8 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
     %% draw sigma2
     if m_new==m_old
         for sig_ind=1:m_new
-            sigma2_max=sigma2_old(sig_ind)+0.02;
-            sigma2_min=max(sigma2_old(sig_ind)-0.02,0);
+            sigma2_max=sigma2_old(sig_ind)+10;
+            sigma2_min=max(sigma2_old(sig_ind)-10,0);
             sigma2_new(sig_ind)=sigma2_min+(sigma2_max-sigma2_min)*betarnd(2,2);
         end
     else
