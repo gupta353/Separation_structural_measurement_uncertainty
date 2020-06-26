@@ -42,6 +42,7 @@ h0_min=-5;          % minimum value of first cease-to-flow parameter (in m)
 h0_max=hmin;        % maximum value of first cease-to-flow parameter (in m)
 
 %% Imaginery flow values
+%{
 theta0=joint_priorrnd(lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,aspace,nsamp);
 proprnd=@(x)propMCMCrnd(x,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,nsamp);                             % draws samples from proposal distribution 
 logproppdf=@(x,y)propMCMCpdf(x,y,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max);
@@ -51,6 +52,31 @@ while ind<inf
     theta=propMCMCrnd(theta0,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,nsamp);
     log_likeli=rc_likeli(theta,h,log_Q_obs,aspace);
 end
-
-
-
+%}
+%% testing fo faster implementation of rc_est
+theta0=joint_priorrnd(lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,aspace,nsamp);
+proprnd=@(x)propMCMCrnd(x,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,nsamp);                             % draws samples from proposal distribution 
+logproppdf=@(x,y)propMCMCpdf(x,y,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max);
+count=0;
+while ind<300
+    count=count+1;
+    theta=propMCMCrnd(theta0,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,nsamp);
+    m           =    theta(1);                     % number of segments
+    h01         =    theta(2);                     % cease-to-flow parameter of the first segment
+    h_s         =    theta(2:m+2);                 % list fo break points (h01 is included in the list of break-points)
+    h0_list     =    [h01,theta(m+3:2*m+1)];       % list of cease-to-flow parameters
+    a1          =    theta(2*m+2);                 % list of multiplier parameters
+    b_list      =    theta(2*m+3:3*m+2);           % list of exponent parameters
+    sigma2_list =    theta(3*m+3:4*m+2); 
+    
+    log_Q1 = rc_est1(h,h_s,a1,b_list,h0_list,aspace);
+    log_Q = rc_est(h,h_s,a1,b_list,h0_list,aspace);
+    
+    scatter(log_Q,log_Q1)
+    hold on
+    ulimit=max([log_Q;log_Q1]);
+    llimit=min([log_Q;log_Q1]);
+    plot([llimit ulimit],[llimit ulimit],'color','black')
+    pause(0.5);
+    close;
+end
