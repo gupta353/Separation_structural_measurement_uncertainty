@@ -29,22 +29,30 @@ function log_likeli=rc_likeli(theta,h,log_Q_obs,aspace)
     res = rc_res(log_Q_obs,log_Q_est);
     log_likeli=0;
     for seg_ind=1:m
-        res_tmp = res(h<u_brk(seg_ind));
+        ind = find(h<u_brk(seg_ind));
+        res_tmp = res(ind);
+        ntmp = length(ind);
         sigma2_tmp = sigma2_list(seg_ind);
-        log_likeli = log_likeli - n/2*log(2*pi) - n/2*log(sigma2_tmp) - 1/2/sigma2_tmp*sum(res_tmp.^2);
+        log_likeli = log_likeli - ntmp/2*log(2*pi) - ntmp/2*log(sigma2_tmp) - 1/2/sigma2_tmp*sum(res_tmp.^2);
     end
     %}
     
-    % Addtive error model
+    % Addtive error model with estimated response truncated at zero
     %
     Q_est = exp(log_Q_est);
     Q_obs = exp(log_Q_obs);
     res = rc_res(Q_obs,Q_est);
     log_likeli=0;
     for seg_ind=1:m
-        res_tmp = res(h<u_brk(seg_ind));
+        ind = find(h<u_brk(seg_ind));
+        res_tmp = res(ind);
+        ntmp = length(ind);
+        Q_esttmp = Q_est(ind);
+                
         sigma2_tmp = sigma2_list(seg_ind);
-        log_likeli = log_likeli - n/2*log(2*pi) - n/2*log(sigma2_tmp) - 1/2/sigma2_tmp*sum(res_tmp.^2);
+        log_likeli = log_likeli - ntmp/2*log(2*pi) - ntmp/2*log(sigma2_tmp) - 1/2/sigma2_tmp*sum(res_tmp.^2) + ...
+            log(prod(Indicator(res_tmp,-Q_esttmp,inf(ntmp,1)))) - ...
+            log(1-prod(normcdf(0,Q_esttmp,sqrt(sigma2_tmp))));
    end
     %}
 end
