@@ -49,7 +49,7 @@ h0_max=hmin;        % maximum value of first cease-to-flow parameter (in m)
 proprnd=@(x)propMCMCrnd(x,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,nsamp);                             % draws samples from proposal distribution 
 logproppdf=@(x,y)propMCMCpdf(x,y,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max);                                   % log of transition pdf for proposal distribtuion
 logpdf=@(x)(rc_likeli(x,h,log_Q_obs,aspace)+joint_priorpdf(x,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max));       % lof of target distribution
-nsamples=100000;               % number MH samples to be drawn
+nsamples=10000;               % number MH samples to be drawn
 nchains=8;
 thining = 10;
 
@@ -58,7 +58,7 @@ for chain_ind=1:nchains
     theta0(:,:,chain_ind) = joint_priorrnd(lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,aspace,nsamp);            % seed parameter
     [smpl(:,:,chain_ind),accept(chain_ind)] = mhsample(theta0(:,:,chain_ind),nsamples,'logpdf',logpdf,'logproppdf',logproppdf,'proprnd',proprnd,'thin',thining);
 end
-}
+
 
 %% compare observed and simulated rating curves
 %{
@@ -189,3 +189,5 @@ df = 2*(V_hat.^2)./var_V_hat;                   % Degrees of freedom
 
 R = V_hat./W.*(df./(df-2));                     % R diagnostics
 sqrt_R = R.^0.5;                                % Potential scale reduction factor
+
+plot(20:10:nsamples,sqrt_R);
