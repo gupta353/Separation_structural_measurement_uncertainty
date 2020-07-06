@@ -1,8 +1,8 @@
 % 
 
-% clear all
-% close all
-% clc
+clear all
+close all
+clc
 
 direc='D:/Research/Thesis_work/Structural_vs_measurement_uncertainty/matlab_codes';
 begin_date='2001-01-01';    % begin date in yyyy-mm-dd format
@@ -50,10 +50,12 @@ proprnd=@(x)propMCMCrnd(x,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min
 logproppdf=@(x,y)propMCMCpdf(x,y,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max);                                   % log of transition pdf for proposal distribtuion
 logpdf=@(x)(rc_likeli(x,h,log_Q_obs,aspace)+joint_priorpdf(x,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max));       % lof of target distribution
 nsamples=10000;               % number MH samples to be drawn
-nchains=8;
-thining = 10;
+nchains=1;
+thining = 1;
 
-smpl=zeros(nsamples,40,nchains);
+smpl = zeros(nsamples,40,nchains);
+theta0 = zeros(1,40,nchains);
+accept = zeros(nchains,1);
 for chain_ind=1:nchains
     theta0(:,:,chain_ind) = joint_priorrnd(lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,aspace,nsamp);            % seed parameter
     [smpl(:,:,chain_ind),accept(chain_ind)] = mhsample(theta0(:,:,chain_ind),nsamples,'logpdf',logpdf,'logproppdf',logproppdf,'proprnd',proprnd,'thin',thining);
@@ -117,7 +119,7 @@ end
 %}
 %% plot the posterior rating curves
 %{
-uni_smpl=unique(smpl,'rows','stable');
+uni_smpl=unique(smpl(:,:,1),'rows','stable');
 for theta_ind=1:size(uni_smpl,1)
     theta=uni_smpl(theta_ind,:);
     m       =    theta(1);                     % number of segments
@@ -135,7 +137,7 @@ for theta_ind=1:size(uni_smpl,1)
         
         ind = find(h<=h_s(seg+1) & h>=h_s(seg));
         sig2 = sigma2_list(seg);
-        Q_sim_low(ind) = exp(log_Q_sim_low(ind)) - 3*sqrt(sig2);
+        Q_sim_low(ind) = exp(log_Q_sim_low(ind)) - 3*sqrt(sig2); Q_sim_low(Q_sim_low<0) = 0;
         Q_sim_up(ind) = exp(log_Q_sim_up(ind)) + 3*sqrt(sig2);
         
     end
@@ -144,50 +146,22 @@ for theta_ind=1:size(uni_smpl,1)
     scatter(h,exp(log_Q_obs),'filled','facecolor','r'); hold on
     scatter(h,Q_sim_low,'filled','facecolor','g'); hold on
     scatter(h,Q_sim_up,'filled','facecolor','g'); hold on
-    set(gca,'xscale','log','yscale','log')
-    pause;
+%     set(gca,'xscale','log','yscale','log')
+    pause(1);
     close all
 end
 %}
 
 %% R-diagnostic (Gelman and Rubin, 1992)
 % compute log_likelihood for each parameter in each chain
+%
+log_likeli = zeros(nsamples,nchains);
 for chain_ind = 1:nchains
     for smp = 1:nsamples
         log_likeli(smp,chain_ind) = rc_likeli(smpl(smp,:,chain_ind),h,log_Q_obs,aspace);
     end
 end
 
-% compute average at each time-step
-count=0;
-for t = 20:10:nsamples
-    count = count + 1;
-    ind = (t/2+1):t;
-    average(count,:) = mean(log_likeli(ind,:));         % within-sequence average
-    average2(count,:) = average(count,:).^2;            % square of within-sequence average 
-    s2(count,:) = var(log_likeli(ind,:));               % within-sequence variance
-    n(count,1) = length(ind);                           
-    tmp = cov(s2(count,:),average2(count,:));           
-    cov1(count,1) = tmp(1,2);
-    tmp = cov(s2(count,:),average(count,:));
-    cov2(count,1) = tmp(1,2);
-    mu_hat(count,1) = mean(average(count,:));
-end
-
-W = mean(s2,2);                                 % average of within-sequence variance
-var_W  = var(s2,0,2)/nchains;                   % variance of W
-B_by_n = var(average,0,2);                        % varaince of within-sequence mean 
-var_B  = 2*B_by_n.^2/(nchains-1).*(n.^2);       % variance of B (= B_by_n*n)
-cov_W_B = n/nchains.*(cov1 - 2*mu_hat.*cov2);   % covariance of W and B
-
-var_V_hat =  ((n-1)./n).^2.*var_W + ...
-    ((nchains+1)./n./nchains).^2.*var_B + ...
-    2*(nchains-1)*(n-1)./n.^2/nchains.*cov_W_B;
-
-V_hat = (n-1)./n.*W + (1+1./nchains).*(B_by_n); % Estimate of variance
-df = 2*(V_hat.^2)./var_V_hat;                   % Degrees of freedom
-
-R = V_hat./W.*(df./(df-2));                     % R diagnostics
-sqrt_R = R.^0.5;                                % Potential scale reduction factor
-
-plot(20:10:nsamples,sqrt_R);
+% R-diagnostic
+sqrt_R = R_diag(log_likeli);
+%}
