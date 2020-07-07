@@ -46,7 +46,7 @@ h0_min=-5;          % minimum value of first cease-to-flow parameter (in m)
 h0_max=hmin;        % maximum value of first cease-to-flow parameter (in m)
 
 
-nopt = 10;  % number of optimization algorithms
+nopt = 50;  % number of optimization algorithms
 m_max = floor(lambda*(hmax-hmin));
 
 opts = saoptimset('MaxFunEvals',200000,'TolFun',10^-12);
@@ -67,19 +67,12 @@ for m = 1:m_max;
     end
 end
 
-% m       =    theta(1);                     % number of segments
-% h01     =    theta(2);                     % cease-to-flow parameter of the first segment
-% h_s     =    theta(2:m+2);                 % list fo break points (h01 is included in the list of break-points)
-% h0_list =    [h01,theta(m+3:2*m+1)];       % list of cease-to-flow parameters
-% a1      =    theta(2*m+2);                 % list of multiplier parameters
-% b_list  =    theta(2*m+3:3*m+2);           % list of exponent parameters
-% sigma2_list  =    theta(3*m+3:4&m+2);
-% 
-% log_Q_sim = rc_est(h,h_s,a1,b_list,h0_list,aspace);
-% scatter(exp(log_Q_obs),exp(log_Q_sim),'filled'); hold on
-% llimit = min([exp(log_Q_sim);exp(log_Q_obs)]);
-% ulimit = max([exp(log_Q_sim);exp(log_Q_obs)]);
-% plot([llimit ulimit],[llimit ulimit],'color','black','linewidth',2)
+% create a probability distribtuion out of optimal theta values using
+% log likelihoods as probabilities
+max_log_likeli = max(log_likeli);
+diff_log_likeli = log_likeli - max_log_likeli;
+probs = exp(diff_log_likeli)/sum(exp(diff_log_likeli));
+save('optimal_parameters.mat','theta','probs');
 %}
 %% draw samples from posterior distribution
 %{
