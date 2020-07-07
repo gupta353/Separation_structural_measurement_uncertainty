@@ -1,4 +1,4 @@
-% 
+%
 
 clear all
 close all
@@ -26,8 +26,66 @@ date(gage_height>100)=[];
 datetime(gage_height>100)=[];
 gage_height(gage_height>100)=[];
 
-%% draw samples from posterior distribution
+%% optimization of log-likelihood
 %
+begin_datenum=datenum(begin_date,'yyyy-mm-dd');
+end_datenum=datenum(end_date,'yyyy-mm-dd');
+ind_begin=find(datetime>=begin_datenum,1,'first');
+ind_end=find(datetime<=end_datenum,1,'last');
+h=gage_height(ind_begin:ind_end);
+discharge=discharge(ind_begin:ind_end);
+log_Q_obs=log(discharge);
+hmin=min(h); hmax=max(h);
+lambda=0.2;           % segmentation rate (number of rating-curve segments per unit length)
+nsamp=1;            % number of samples to be drawn
+aspace='log';       % space of multiplier parameter ('log' or 'arithmetic')
+amin=0.1; amax=5;     % minimum and maximum values of multiplier parameter in appropriate space
+bmin=0.5; bmax=3.5; % minimum and maximum values of exponent parameters
+alpha=2; beta=0.1;    % parameter of inverse-gamma distribtuion to draw sample from sigma2
+h0_min=-5;          % minimum value of first cease-to-flow parameter (in m)
+h0_max=hmin;        % maximum value of first cease-to-flow parameter (in m)
+
+
+nopt = 10;  % number of optimization algorithms
+m_max = floor(lambda*(hmax-hmin));
+
+opts = saoptimset('MaxFunEvals',200000,'TolFun',10^-12);
+zero_column = zeros(1,40);
+count=0;
+
+m=4;
+objfun = @(x)(rc_likeli_opt(x,m,h,log_Q_obs,aspace));
+lb = [h0_min,hmin*ones(1,m-1),1000,h0_min*ones(1,m-1),amin,bmin*ones(1,m),0.00001*ones(1,m)];
+ub = [h0_max,hmax*ones(1,m-1),1000,hmax*ones(1,m-1),amax,bmax*ones(1,m),60*ones(1,m)];
+theta0 = joint_priorrnd_opt(m,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,aspace,nsamp);
+theta0 = theta0(2:4*m+2);
+theta_opt  = simulannealbnd(objfun,theta0,lb,ub,opts);
+
+theta = [m,theta_opt];
+m       =    theta(1);                     % number of segments
+h01     =    theta(2);                     % cease-to-flow parameter of the first segment
+h_s     =    theta(2:m+2);                 % list fo break points (h01 is included in the list of break-points)
+h0_list =    [h01,theta(m+3:2*m+1)];       % list of cease-to-flow parameters
+a1      =    theta(2*m+2);                 % list of multiplier parameters
+b_list  =    theta(2*m+3:3*m+2);           % list of exponent parameters
+sigma2_list  =    theta(3*m+3:4&m+2);
+
+log_Q_sim = rc_est(h,h_s,a1,b_list,h0_list,aspace);
+scatter(exp(log_Q_obs),exp(log_Q_sim),'filled'); hold on
+llimit = min([exp(log_Q_sim);exp(log_Q_obs)]);
+ulimit = max([exp(log_Q_sim);exp(log_Q_obs)]);
+plot([llimit ulimit],[llimit ulimit],'color','black','linewidth',2)
+
+% compute the scaled distance of different optimal parameters from minimum
+% value of theta
+% for theta_ind = 1:size(theta,2)
+%     theta_scaled(:,theta_ind) = (theta(:,theta_ind)-lb(theta_ind))/(ub(theta_ind)-lb(theta_ind));
+% end
+% theta_scaled(:,2)=[];
+% d = sqrt(sum(theta_scaled.^2,2));
+%}
+%% draw samples from posterior distribution
+%{
 begin_datenum=datenum(begin_date,'yyyy-mm-dd');
 end_datenum=datenum(end_date,'yyyy-mm-dd');
 ind_begin=find(datetime>=begin_datenum,1,'first');
@@ -46,7 +104,7 @@ h0_min=-5;          % minimum value of first cease-to-flow parameter (in m)
 h0_max=hmin;        % maximum value of first cease-to-flow parameter (in m)
 
 
-proprnd=@(x)propMCMCrnd(x,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,nsamp);                             % draws samples from proposal distribution 
+proprnd=@(x)propMCMCrnd(x,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,nsamp);                             % draws samples from proposal distribution
 logproppdf=@(x,y)propMCMCpdf(x,y,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max);                                   % log of transition pdf for proposal distribtuion
 logpdf=@(x)(rc_likeli(x,h,log_Q_obs,aspace)+joint_priorpdf(x,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max));       % lof of target distribution
 nsamples=10000;               % number MH samples to be drawn
@@ -102,7 +160,7 @@ for theta_ind=1:size(uni_smpl,1)
         
         ind=find(h<=h_s(seg+1) & h>=h_s(seg));
         htmp = h(ind);
-        h0 = h0_list(seg);      
+        h0 = h0_list(seg);
         
         scatter(htmp-h0,exp(log_Q_sim(ind)),'filled','facecolor','r'); hold on
         scatter(htmp-h0,exp(log_Q_obs(ind)),'filled','facecolor','b'); hold on
