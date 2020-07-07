@@ -1,6 +1,7 @@
 % this routine compute log likelihood of parameters of piecewise power-law
 % rating curve
 % inputs: theta = parameters of the model
+%         m = number of segments
 %         h = heights at whoch discharges are to be estimated
 %         log_Q_obs = logarithm of observed streamflow
 %         aspace = if a is in logarithmic space this parameter should be
@@ -9,9 +10,8 @@
 % Ref: Reitan and Petersen-Overleir (2009). Bayesian methods for estimating
 % multi-segment discharge rating curve
 
-function log_likeli=rc_likeli_opt(theta,h,log_Q_obs,aspace)
+function log_likeli=rc_likeli_opt(theta,m,h,log_Q_obs,aspace)
     
-    m           =    1;                     % number of segments
     h01         =    theta(1);                     % cease-to-flow parameter of the first segment
     h_s         =    theta(1:m+1);                 % list fo break points (h01 is included in the list of break-points)
     h0_list     =    [h01,theta(m+2:2*m)];       % list of cease-to-flow parameters
@@ -19,9 +19,8 @@ function log_likeli=rc_likeli_opt(theta,h,log_Q_obs,aspace)
     b_list      =    theta(2*m+2:3*m+1);           % list of exponent parameters
     sigma2_list =    theta(3*m+2:4*m+1);           % list of homoscedastic variance of residuals
     
-    log_Q_est = rc_est(h,h_s,a1,b_list,h0_list,aspace);
+    log_Q_est = rc_est_opt(h,h_s,a1,b_list,h0_list,aspace);
         
-    n = length(log_Q_obs);
     u_brk = h_s(2:end);
     
     % multiplicative error model
