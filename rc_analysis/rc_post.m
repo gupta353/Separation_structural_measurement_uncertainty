@@ -36,7 +36,7 @@ h=gage_height(ind_begin:ind_end);
 discharge=discharge(ind_begin:ind_end);
 log_Q_obs=log(discharge);
 hmin=min(h); hmax=max(h);
-lambda=0.2;           % segmentation rate (number of rating-curve segments per unit length)
+lambda=0.6;           % segmentation rate (number of rating-curve segments per unit length)
 nsamp=1;            % number of samples to be drawn
 aspace='log';       % space of multiplier parameter ('log' or 'arithmetic')
 amin=0.1; amax=5;     % minimum and maximum values of multiplier parameter in appropriate space
@@ -50,39 +50,36 @@ nopt = 10;  % number of optimization algorithms
 m_max = floor(lambda*(hmax-hmin));
 
 opts = saoptimset('MaxFunEvals',200000,'TolFun',10^-12);
-zero_column = zeros(1,40);
+zero_column = zeros(40,1);
 count=0;
 
-m=4;
-objfun = @(x)(rc_likeli_opt(x,m,h,log_Q_obs,aspace));
-lb = [h0_min,hmin*ones(1,m-1),1000,h0_min*ones(1,m-1),amin,bmin*ones(1,m),0.00001*ones(1,m)];
-ub = [h0_max,hmax*ones(1,m-1),1000,hmax*ones(1,m-1),amax,bmax*ones(1,m),60*ones(1,m)];
-theta0 = joint_priorrnd_opt(m,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,aspace,nsamp);
-theta0 = theta0(2:4*m+2);
-theta_opt  = simulannealbnd(objfun,theta0,lb,ub,opts);
+for m = 1:m_max;
+    objfun = @(x)(rc_likeli_opt(x,m,h,log_Q_obs,aspace));
+    lb = [h0_min,hmin*ones(1,m-1),1000,h0_min*ones(1,m-1),amin,bmin*ones(1,m),0.00001*ones(1,m)];
+    ub = [h0_max,hmax*ones(1,m-1),1000,hmax*ones(1,m-1),amax,bmax*ones(1,m),60*ones(1,m)];
+    for opt_ind = 1:nopt
+        count = count+1;
+        theta0 = joint_priorrnd_opt(m,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,aspace,nsamp);
+        theta0 = theta0(2:4*m+2);
+        theta_opt  = simulannealbnd(objfun,theta0,lb,ub,opts);
+        theta(count,:) = [m,add_columns(theta_opt',zero_column)'];
+        log_likeli(count)=rc_likeli(theta(count,:),h,log_Q_obs,aspace);
+    end
+end
 
-theta = [m,theta_opt];
-m       =    theta(1);                     % number of segments
-h01     =    theta(2);                     % cease-to-flow parameter of the first segment
-h_s     =    theta(2:m+2);                 % list fo break points (h01 is included in the list of break-points)
-h0_list =    [h01,theta(m+3:2*m+1)];       % list of cease-to-flow parameters
-a1      =    theta(2*m+2);                 % list of multiplier parameters
-b_list  =    theta(2*m+3:3*m+2);           % list of exponent parameters
-sigma2_list  =    theta(3*m+3:4&m+2);
-
-log_Q_sim = rc_est(h,h_s,a1,b_list,h0_list,aspace);
-scatter(exp(log_Q_obs),exp(log_Q_sim),'filled'); hold on
-llimit = min([exp(log_Q_sim);exp(log_Q_obs)]);
-ulimit = max([exp(log_Q_sim);exp(log_Q_obs)]);
-plot([llimit ulimit],[llimit ulimit],'color','black','linewidth',2)
-
-% compute the scaled distance of different optimal parameters from minimum
-% value of theta
-% for theta_ind = 1:size(theta,2)
-%     theta_scaled(:,theta_ind) = (theta(:,theta_ind)-lb(theta_ind))/(ub(theta_ind)-lb(theta_ind));
-% end
-% theta_scaled(:,2)=[];
-% d = sqrt(sum(theta_scaled.^2,2));
+% m       =    theta(1);                     % number of segments
+% h01     =    theta(2);                     % cease-to-flow parameter of the first segment
+% h_s     =    theta(2:m+2);                 % list fo break points (h01 is included in the list of break-points)
+% h0_list =    [h01,theta(m+3:2*m+1)];       % list of cease-to-flow parameters
+% a1      =    theta(2*m+2);                 % list of multiplier parameters
+% b_list  =    theta(2*m+3:3*m+2);           % list of exponent parameters
+% sigma2_list  =    theta(3*m+3:4&m+2);
+% 
+% log_Q_sim = rc_est(h,h_s,a1,b_list,h0_list,aspace);
+% scatter(exp(log_Q_obs),exp(log_Q_sim),'filled'); hold on
+% llimit = min([exp(log_Q_sim);exp(log_Q_obs)]);
+% ulimit = max([exp(log_Q_sim);exp(log_Q_obs)]);
+% plot([llimit ulimit],[llimit ulimit],'color','black','linewidth',2)
 %}
 %% draw samples from posterior distribution
 %{
