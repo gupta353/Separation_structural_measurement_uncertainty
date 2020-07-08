@@ -27,7 +27,7 @@ datetime(gage_height>100)=[];
 gage_height(gage_height>100)=[];
 
 %% optimization of log-likelihood
-%
+%{
 begin_datenum=datenum(begin_date,'yyyy-mm-dd');
 end_datenum=datenum(end_date,'yyyy-mm-dd');
 ind_begin=find(datetime>=begin_datenum,1,'first');
@@ -46,7 +46,7 @@ h0_min=-5;          % minimum value of first cease-to-flow parameter (in m)
 h0_max=hmin;        % maximum value of first cease-to-flow parameter (in m)
 
 
-nopt = 50;  % number of optimization algorithms
+nopt = 100;  % number of optimization algorithms
 m_max = floor(lambda*(hmax-hmin));
 
 opts = saoptimset('MaxFunEvals',200000,'TolFun',10^-12);
@@ -69,13 +69,21 @@ end
 
 % create a probability distribtuion out of optimal theta values using
 % log likelihoods as probabilities
+theta(log_likeli==inf,:)=[];
+log_likeli(log_likeli==inf)=[];
 max_log_likeli = max(log_likeli);
 diff_log_likeli = log_likeli - max_log_likeli;
 probs = exp(diff_log_likeli)/sum(exp(diff_log_likeli));
 save('optimal_parameters.mat','theta','probs');
 %}
 %% draw samples from posterior distribution
-%{
+%
+% open the mat file containing optimal points
+filename = fullfile(direc,'optimal_parameters.mat');
+load(filename);
+samp_space = (1:length(probs))';
+probs = probs';
+
 begin_datenum=datenum(begin_date,'yyyy-mm-dd');
 end_datenum=datenum(end_date,'yyyy-mm-dd');
 ind_begin=find(datetime>=begin_datenum,1,'first');
@@ -84,7 +92,7 @@ h=gage_height(ind_begin:ind_end);
 discharge=discharge(ind_begin:ind_end);
 log_Q_obs=log(discharge);
 hmin=min(h); hmax=max(h);
-lambda=0.4;           % segmentation rate (number of rating-curve segments per unit length)
+lambda=0.6;           % segmentation rate (number of rating-curve segments per unit length)
 nsamp=1;            % number of samples to be drawn
 aspace='log';       % space of multiplier parameter ('log' or 'arithmetic')
 amin=0.1; amax=5;     % minimum and maximum values of multiplier parameter in appropriate space
@@ -98,15 +106,16 @@ proprnd=@(x)propMCMCrnd(x,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min
 logproppdf=@(x,y)propMCMCpdf(x,y,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max);                                   % log of transition pdf for proposal distribtuion
 logpdf=@(x)(rc_likeli(x,h,log_Q_obs,aspace)+joint_priorpdf(x,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max));       % lof of target distribution
 nsamples=10000;               % number MH samples to be drawn
-nchains=1;
-thining = 1;
+nchains=8;
+thining = 10;
 
 smpl = zeros(nsamples,40,nchains);
-theta0 = zeros(1,40,nchains);
+theta0 = zeros(nchains,40);
 accept = zeros(nchains,1);
 for chain_ind=1:nchains
-    theta0(:,:,chain_ind) = joint_priorrnd(lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,aspace,nsamp);            % seed parameter
-    [smpl(:,:,chain_ind),accept(chain_ind)] = mhsample(theta0(:,:,chain_ind),nsamples,'logpdf',logpdf,'logproppdf',logproppdf,'proprnd',proprnd,'thin',thining);
+    samp_ind = prob_discrete(samp_space,probs);
+    theta0(chain_ind,:) = theta(samp_ind,:);            % seed parameter
+    [smpl(:,:,chain_ind),accept(chain_ind)] = mhsample(theta0(chain_ind,:),nsamples,'logpdf',logpdf,'logproppdf',logproppdf,'proprnd',proprnd,'thin',thining);
 end
 
 
