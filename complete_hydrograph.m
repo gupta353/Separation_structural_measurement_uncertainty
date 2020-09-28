@@ -1,12 +1,12 @@
 % This routine takes incomplete streamflow hydrographs as input and
 % completes the hydrograph by appropriately appending MRC to the hydrograph
-% inputs: period = a call array of structures such that each structure
+% inputs: period = a cell array of structures such that each structure
 %                 contains rainfall and corresponding streamflow
-%                 (incomplete) data (in cms)
+%                 (incomplete) data (in m^3 s^-1)
 %         mrc = master recession curve (in cms)
-% output: periodc = a call array of structures such that each structure
+% output: periodc = a cell array of structures such that each structure
 %                 contains rainfall, corresponding incomplete streamflow
-%                 and complete streamflow (MRC appened) (in cms)
+%                 and complete streamflow (MRC appened) (in m^3 s^-1)
 
 
 function periodc=complete_hydrograph(period,mrc)
