@@ -9,9 +9,9 @@ clc
 direc='D:/Research/Thesis_work/Structural_vs_measurement_uncertainty/matlab_codes';
 darea=2764.0831;                % drainage area in km2
 rec_length_thresh=4;           % minimum lenght of recession period to be considered (in days)
-prcp_strm_ratio_thresh=0.2;     % threshold for precipitation to streamflow ratio (recommended <=0.1)
-evap_strm_ratio_thresh_pos=0.1;     % threshold for positive evaporation to streamflow ratio (recommended <=0.1)
-evap_strm_ratio_thresh_neg=-0.1;     % threshold for negative evaporation to streamflow ratio (recommended <=0.1)
+prcp_strm_ratio_thresh=0.2;     % upper limit for precipitation to streamflow ratio (recommended <=0.1)
+evap_strm_ratio_thresh_pos=0.1;     % upper limit for positive evaporation to streamflow ratio (recommended <=0.1)
+evap_strm_ratio_thresh_neg=-0.1;     % lower limit for negative evaporation to streamflow ratio (recommended <=0.1)
 %% load streamflow, rainfall and evaporation data
 % streamflow
 strm_fname='streamflow_18.txt';
@@ -23,7 +23,7 @@ strm_date=data{1};
 strm_vals=data{2}*0.028316847;      % cfs to cms
 strm_vals=strm_vals/darea/1000*3600*24;     % cms to mm day^{-1}
 
-% precipitation
+% daily precipitation
 prcp_fname='rainfall.txt';
 filename=fullfile(direc,'huc_04100003',prcp_fname);
 fid=fopen(filename,'r');
@@ -32,12 +32,17 @@ fclose(fid);
 prcp_date=data{1};
 prcp_time=data{2};
 prcp_vals=data{3};
+
 % replace NaNs by means of previous and next day
 indnan=find(isnan(prcp_vals));
 for nan_ind=1:length(indnan)
     indtmp=[indnan(nan_ind)-1;indnan(nan_ind)+1];
     prcp_vals(indnan(nan_ind))=mean(prcp_vals(indtmp));
 end
+if isnan(prcp_vals)
+    error('precipitation data contains NaNs')
+end
+
 % convert rainfall into daily timescale from hourly timescale
 prcp_tmp=reshape(prcp_vals,24,length(prcp_vals)/24);
 prcp_vals=sum(prcp_tmp)';
@@ -51,7 +56,10 @@ fclose(fid);
 evap_date=data{1};
 evap_vals=data{2};
 
-%% extarct recession periods
+if isnan(evap_vals)
+    error('evaporation data contains NaNs');
+end
+%% extract recession periods
 strm_shifted=strm_vals(1:end-1);
 differ=strm_vals(2:end)-strm_shifted;
 ind=find(differ<0);
@@ -61,8 +69,8 @@ rec_times=ind+1;
 rec_time_shifted=rec_times(1:end-1);
 differ=rec_times(2:end)-rec_time_shifted;
 ind=find(differ>1);
-rec_lengths=[ind(1);ind(2:end)-ind(1:end-1)];
-break_times=rec_times(ind+1);
+rec_lengths=[ind(1);ind(2:end)-ind(1:end-1)];       % lengths of observed recession periods
+break_times=rec_times(ind+1);                       % starting indices of recession periods
 
 figure; hold on;
 time_count=1;
@@ -88,6 +96,7 @@ xlabel('Time-steps (days)','fontname','arial','fontsize',12);
 ylabel('Streamflow (mm day^{-1})','fontname','arial','fontsize',12);
 title('Recession periods','fontname','arial','fontsize',12);
 set(gca,'fontname','arial','fontsize',12);
+
 %% Compute statistics to filter the recession periods
 % compute total volumes of streamflow, rainfall, and evaporation during
 % each recession period
@@ -112,11 +121,12 @@ figure; hist(evap_strm_ratios);
 xlabel('Evaporation streamflow ratio','fontname','arial','fontsize',12);
 ylabel('Number of samples in the bin','fontname','arial','fontsize',12);
 set(gca,'fontname','arial','fontsize',12);
+
 %% filter the recession periods
 ind_prcp=find(prcp_strm_ratios<=prcp_strm_ratio_thresh);        % precipitation threshold
 ind_evap=find(evap_strm_ratios<=evap_strm_ratio_thresh_pos...
     & evap_strm_ratios>=evap_strm_ratio_thresh_neg);        % evaporation threshold
-ind_length=find(rec_lengths>=rec_length_thresh);                % leength threshold
+ind_length=find(rec_lengths>=rec_length_thresh);                % length threshold
 ind_final1=intersect(ind_prcp,ind_evap);
 ind_final=intersect(ind_final1,ind_length);
 
