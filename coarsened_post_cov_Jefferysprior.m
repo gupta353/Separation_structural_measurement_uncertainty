@@ -16,7 +16,7 @@ clc
 
 direc='D:/Research/Thesis_work/Structural_vs_measurement_uncertainty/matlab_codes';
 N=1000; % number of covariance matrices to be drawn
-alpha=200; % coarsening parameter
+alpha=1; % coarsening parameter
 
 
 % load observed streamflow data (ML estimated)
@@ -24,7 +24,11 @@ fname='streamflow_18.mat';
 filename=fullfile(direc,'huc_04100003','SJRW_ML_results',fname);
 load(filename);                     % streamflow in cfs
 strm_ML=MC1_temp*0.028316847;       % streamflow in cms
-strm_ML=strm_ML(1:365,:);            % retain only one year of data
+strm_datenums = datenum('01-01-2005','dd-mm-yyyy'):datenum('31-12-2016','dd-mm-yyyy');
+begin_datenum = datenum('01-01-2008','dd-mm-yyyy');
+end_datenum = datenum('31-12-2010','dd-mm-yyyy');
+ind = find(strm_datenums>=begin_datenum & strm_datenums<=end_datenum);
+strm_ML=strm_ML(ind,:);            % retain only one year of data
 
 % define parameters of prior  (inverse Wishart distribtuion)
 [d,n]=size(strm_ML); % d=dimensions, n=number of observations
@@ -58,14 +62,15 @@ nu_s=nu+zeta_n*n;
 Lambda_s=Lambda+zeta_n*Q;
 
 % draw samples from inverse Wishart distribtuion
+C = zeros(d,d,N);
 for samp_ind=1:N
     
     C(:,:,samp_ind)=iwishrnd(Lambda_s,nu_s);         % samples of covariance matrix from posterior distribution
-    Cr(:,:,samp_ind)=corrcov(C(:,:,samp_ind));       % samples of correlation matrix from posterior distribution
+%     Cr(:,:,samp_ind)=corrcov(C(:,:,samp_ind));       % samples of correlation matrix from posterior distribution
        
 end
-break
+
 % save the samp and R
-fname='covmat.mat';
-save_filename=fullfile(direc,'huc_04100003','results','covmat_Jefferys_prior',fname);
-save(save_filename,'C','Cr');
+fname=strcat('covmat','_','alpha = ',num2str(alpha),'.mat');
+save_filename=fullfile('E:/covmat_Jefferys_prior',fname);
+save(save_filename,'C','-v7.3');
