@@ -10,7 +10,7 @@ alpha_vals=[10,100,500,1000,2000,5000,10000,20000];
 colorpal=[0,0,1;0,1,0;1,0,0;1,1,0;1,0,1;0,1,1;0,0,0;0.50,0.5,0];
 
 %% plot variance histograms in a for loop
-%{
+%
 figure; hold on
 for fig_ind=1:length(alpha_vals)
     
@@ -38,6 +38,7 @@ save_filename=fullfile(direc,'huc_04100003','results',...
 save(save_filename)
 %}
 %% plot correlation histograms in a for loop
+%{
 figure; hold on
 for fig_ind=1:length(alpha_vals)
     
@@ -63,4 +64,5 @@ legend('boxoff');
 sname='corr_t=1_2.fig';
 save_filename=fullfile(direc,'huc_04100003','results',...
         'covmat_Jefferys_prior',sname);
-save(save_filename)
+save(save_filename);
+%}
