@@ -49,7 +49,7 @@ h0_max=hmin;        % maximum value of first cease-to-flow parameter (in m)
 nopt = 100;  % number of optimization algorithms
 m_max = floor(lambda*(hmax-hmin));
 
-opts = saoptimset('MaxFunEvals',200000,'TolFun',10^-12);
+opts = saoptimset('MaxFunEvals',200000,'TolFun',10^-6);
 zero_column = zeros(40,1);
 count=0;
 
@@ -79,10 +79,11 @@ save('optimal_parameters.mat','theta','probs');
 %% draw samples from posterior distribution
 %
 % open the mat file containing optimal points
-filename = fullfile(direc,'optimal_parameters.mat');
+filename = fullfile(direc,'huc_04100003/results','optimal_parameters_04180500.mat');
 load(filename);
 samp_space = (1:length(probs))';
 probs = probs';
+% probs = 1/length(probs)*ones(length(probs),1);
 
 begin_datenum=datenum(begin_date,'yyyy-mm-dd');
 end_datenum=datenum(end_date,'yyyy-mm-dd');
@@ -105,8 +106,8 @@ h0_max=hmin;        % maximum value of first cease-to-flow parameter (in m)
 proprnd=@(x)propMCMCrnd(x,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max,nsamp);                             % draws samples from proposal distribution
 logproppdf=@(x,y)propMCMCpdf(x,y,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max);                                   % log of transition pdf for proposal distribtuion
 logpdf=@(x)(rc_likeli(x,h,log_Q_obs,aspace)+joint_priorpdf(x,lambda,hmin,hmax,amin,amax,bmin,bmax,alpha,beta,h0_min,h0_max));       % lof of target distribution
-nsamples=10000;               % number MH samples to be drawn
-nchains=8;
+nsamples=20000;               % number MH samples to be drawn
+nchains=10;
 thining = 10;
 
 smpl = zeros(nsamples,40,nchains);
@@ -117,7 +118,7 @@ for chain_ind=1:nchains
     theta0(chain_ind,:) = theta(samp_ind,:);            % seed parameter
     [smpl(:,:,chain_ind),accept(chain_ind)] = mhsample(theta0(chain_ind,:),nsamples,'logpdf',logpdf,'logproppdf',logproppdf,'proprnd',proprnd,'thin',thining);
 end
-
+% save('rc_MCMC_chain_04180500','smpl','theta0')
 
 %% compare observed and simulated rating curves
 %{
@@ -211,7 +212,7 @@ end
 
 %% R-diagnostic (Gelman and Rubin, 1992)
 % compute log_likelihood for each parameter in each chain
-%
+%{
 log_likeli = zeros(nsamples,nchains);
 for chain_ind = 1:nchains
     for smp = 1:nsamples
@@ -221,4 +222,14 @@ end
 
 % R-diagnostic
 sqrt_R = R_diag(log_likeli);
+plot(110:10:20000,sqrt_R(10:end),'linewidth',2)
+xlabel('Time-step','fontname','arial','fontsize',12);
+ylabel('Potential scale reduction (R_d)','fontname','arial','fontsize',12);
+box('on')
+box.linewidth = 2;
+set(gca,'fontname','arial','fontsize',12,box);
+
+sname = 'Rd_04180500.svg';
+filename = fullfile(direc,'huc_04100003/results',sname);
+fig2svg(filename);
 %}
