@@ -33,7 +33,7 @@ function theta_new=propMCMCrnd(theta_old,lambda,hmin,hmax,amin,amax,bmin,bmax,al
     if m_max==1
         samp_space=ones(10,1);
     else
-        samp_space=[m_old*ones(8,1);m_old-1;]; % population from which a sample can be drawn uniformly
+        samp_space=[m_old*ones(8,1);m_old-1;m_old+1]; % population from which a sample can be drawn uniformly
         % make sure that sammple space is contained in the suppor
         samp_space(samp_space>m_max)=m_old-1;
         samp_space(samp_space<1)=2;
